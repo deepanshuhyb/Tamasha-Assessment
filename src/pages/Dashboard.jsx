@@ -14,12 +14,6 @@ export default function Dashboard () {
     }
   }, [])
 
-  useEffect(() => {
-    if (boards.length > 0) {
-      setActiveBoard(boards[0])
-    }
-  }, [boards])
-
   const deleteBoard = id => {
     setBoards(boards.filter(board => board.id !== id))
     if (activeBoard.id === id) {
@@ -69,7 +63,7 @@ export default function Dashboard () {
       </div>
 
       <div className='w-[75%] overflow-auto'>
-        <Board />
+        <Board activeBoard={activeBoard} setBoards={setBoards} />
       </div>
     </div>
   )
