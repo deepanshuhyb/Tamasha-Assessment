@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useDispatch } from 'react-redux'
-import { updateTask } from '../../Redux/slices/board/Board'
-export default function EditTaskModal ({ toggleModal, boardId, task }) {
+import { editTask } from '../../Redux/slices/board/Board'
+export default function EditTaskModal ({ toggleModal, boardId, task, listId }) {
   const dispatch = useDispatch()
   const [taskTitle, setTaskTitle] = useState(task.title || '')
   const [taskDescription, setTaskDescription] = useState(task.description || '')
@@ -12,8 +12,9 @@ export default function EditTaskModal ({ toggleModal, boardId, task }) {
       return
     }
     dispatch(
-      updateTask({
+      editTask({
         boardId,
+        listId: listId,
         taskId: task.id,
         title: taskTitle.trim(),
         description: taskDescription.trim()

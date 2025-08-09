@@ -13,7 +13,6 @@ export default function Board () {
 
   useEffect(() => {
     setNewListTitle('')
-    console.log('Active Board:', activeBoard)
   }, [activeBoard])
 
   const handleAddList = () => {

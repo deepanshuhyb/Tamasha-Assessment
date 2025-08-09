@@ -6,7 +6,6 @@ import invariant from 'tiny-invariant'
 import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import Edit from '../assets/svg/Edit.svg'
 import RenameTaskListModal from './Modals/RenameTaskListModal'
-// import AddTaskModal from './Modals/AddListModal'
 import AddListModal from './Modals/AddListModal'
 
 export default function TaskList ({ list, boardId }) {

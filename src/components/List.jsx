@@ -1,6 +1,7 @@
 import { useDispatch } from 'react-redux'
 import { useRef, useEffect, useState } from 'react'
 import invariant from 'tiny-invariant'
+import EditTaskModal from './Modals/EditTaskModal'
 import {
   draggable,
   dropTargetForElements
@@ -11,6 +12,8 @@ import Edit from '../assets/svg/Edit.svg'
 import { deleteTask } from '../Redux/slices/board/Board'
 
 export default function List ({ task, listId, boardId }) {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const toggleModal = () => setIsModalOpen(!isModalOpen)
   const taskRef = useRef(null)
   const dispatch = useDispatch()
   const [isDragging, setIsDragging] = useState(false)
@@ -69,11 +72,27 @@ export default function List ({ task, listId, boardId }) {
       ref={taskRef}
       className={`card ${
         isDragging ? 'dragging' : ''
-      } bg-gray-700 p-2 rounded flex justify-between items-center text-white border border-gray-600 cursor-move`}
+      } bg-gray-700 p-2 rounded flex w-full justify-between items-center text-white border border-gray-600 cursor-move`}
     >
-      <span className='flex gap-2 items-center'>{task.title}</span>
+      {isModalOpen && (
+        <EditTaskModal
+          toggleModal={toggleModal}
+          boardId={boardId}
+          task={task}
+          listId={listId}
+        />
+      )}
+      <span className='flex gap-2 flex-col w-full overflow-hidden'>
+        {task.title}
+        <span className='text-gray-400 text-sm max-w-[80%] overflow-scroll hide-scrollbar'>
+          {task?.description}
+        </span>
+      </span>
       <span className='flex gap-2 items-center'>
-        <button onClick={() => console.log('object')}>
+        <button
+          onClick={() => toggleModal()}
+          className='text-gray-400 hover:text-gray-600'
+        >
           <img src={Edit} className='h-4 w-3' alt='' />
         </button>
         <button

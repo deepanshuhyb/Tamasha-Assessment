@@ -133,6 +133,18 @@ export const BoardSlice = createSlice({
             task.description = description || "";
           }
         }
+        if (state.activeBoard?.id === boardId) {
+          const activeList = state.activeBoard.list.find(
+            (l) => l.id === listId
+          );
+          if (activeList) {
+            const activeTask = activeList.items.find((t) => t.id === taskId);
+            if (activeTask) {
+              activeTask.title = title;
+              activeTask.description = description || "";
+            }
+          }
+        }
         localStorage.setItem("boards", JSON.stringify(state.boards));
       }
     },
