@@ -4,11 +4,17 @@ import { createTask, deleteList, moveTask } from '../Redux/slices/board/Board'
 import List from './List'
 import invariant from 'tiny-invariant'
 import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import Edit from '../assets/svg/Edit.svg'
+import RenameTaskListModal from './Modals/RenameTaskListModal'
+// import AddTaskModal from './Modals/AddListModal'
+import AddListModal from './Modals/AddListModal'
 
 export default function TaskList ({ list, boardId }) {
   const dispatch = useDispatch()
   const [newTaskTitle, setNewTaskTitle] = useState('')
   const listRef = useRef(null)
+  const [modalOpen, setModalOpen] = useState(false)
+  const [addTaskListModalOpen, setAddTaskListModalOpen] = useState(false)
 
   useEffect(() => {
     const el = listRef.current
@@ -52,8 +58,23 @@ export default function TaskList ({ list, boardId }) {
 
   return (
     <div className='bg-gray-800 rounded-lg p-4 border border-gray-600'>
+      {/* {<AddTaskModal />} */}
+      {modalOpen && (
+        <RenameTaskListModal
+          toggleModal={() => setModalOpen(false)}
+          task={{ id: list.id, title: list.title, boardId }}
+        />
+      )}
       <div className='flex justify-between items-center mb-2'>
-        <h3 className='font-semibold mb-2 text-white'>{list.title}</h3>
+        <span className='flex items-center gap-3'>
+          <h3 className='font-semibold text-white'>{list.title}</h3>
+          <img
+            src={Edit}
+            alt=''
+            onClick={() => setModalOpen(true)}
+            className='w-3 h-3'
+          />
+        </span>
         <button
           className='text-red-400 hover:text-red-600'
           onClick={handleDeleteList}
@@ -68,19 +89,20 @@ export default function TaskList ({ list, boardId }) {
         ))}
       </ul>
 
-      <input
-        type='text'
-        value={newTaskTitle}
-        onChange={e => setNewTaskTitle(e.target.value)}
-        placeholder='New task title'
-        className='border border-gray-600 p-2 w-full mb-2 bg-gray-700 text-white placeholder-gray-400'
-      />
       <button
-        className='bg-green-600 text-white w-full p-2 rounded hover:bg-green-700'
-        onClick={handleAddTask}
+        onClick={() => setAddTaskListModalOpen(true)}
+        className='bg-blue-500 p-2 rounded text-white'
       >
-        Add Task
+        + Add Task
       </button>
+
+      {addTaskListModalOpen && (
+        <AddListModal
+          toggleModal={() => setAddTaskListModalOpen(false)}
+          boardId={boardId}
+          listId={list.id}
+        />
+      )}
     </div>
   )
 }

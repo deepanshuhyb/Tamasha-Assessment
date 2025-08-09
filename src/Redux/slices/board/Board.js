@@ -34,6 +34,17 @@ export const BoardSlice = createSlice({
       state.activeBoard = state.boards[0] || null;
       localStorage.setItem("boards", JSON.stringify(state.boards));
     },
+    renameBoard: (state, action) => {
+      const { boardId, newTitle } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        board.title = newTitle;
+        if (state.activeBoard?.id === boardId) {
+          state.activeBoard.title = newTitle;
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
     setActiveBoard: (state, action) => {
       state.activeBoard = action.payload;
     },
@@ -53,19 +64,23 @@ export const BoardSlice = createSlice({
         localStorage.setItem("boards", JSON.stringify(state.boards));
       }
     },
-    renameList: (state, action) => {
+    updateListTitle: (state, action) => {
       const { boardId, listId, newTitle } = action.payload;
       const board = state.boards.find((b) => b.id === boardId);
       if (board) {
         const list = board.list.find((l) => l.id === listId);
-        if (list) list.title = newTitle;
-        if (state.activeBoard?.id === boardId) {
-          const activeList = state.activeBoard.list.find(
-            (l) => l.id === listId
-          );
-          if (activeList) activeList.title = newTitle;
+        if (list) {
+          list.title = newTitle;
+          if (state.activeBoard?.id === boardId) {
+            const activeList = state.activeBoard.list.find(
+              (l) => l.id === listId
+            );
+            if (activeList) {
+              activeList.title = newTitle;
+            }
+          }
+          localStorage.setItem("boards", JSON.stringify(state.boards));
         }
-        localStorage.setItem("boards", JSON.stringify(state.boards));
       }
     },
     deleteList: (state, action) => {
@@ -194,4 +209,6 @@ export const {
   editTask,
   deleteTask,
   moveTask,
+  updateListTitle,
+  renameBoard,
 } = BoardSlice.actions;

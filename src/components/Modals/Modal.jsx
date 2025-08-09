@@ -1,13 +1,8 @@
 import { useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { addBoard } from '../Redux/slices/board/Board'
+import { addBoard } from '../../Redux/slices/board/Board'
 export default function Modal ({ toggleModal }) {
   const [boardName, setBoardName] = useState('')
-  const defaultList = [
-    { id: 1, title: 'To Do', items: [] },
-    { id: 2, title: 'In Progress', items: [] },
-    { id: 3, title: 'Done', items: [] }
-  ]
   const dispatch = useDispatch()
   const Boards = useSelector(state => state.board.boards)
 
@@ -17,6 +12,11 @@ export default function Modal ({ toggleModal }) {
       return
     }
     // add logic to check if board already exists
+    const boardExists = Boards.some(board => board.title === boardName)
+    if (boardExists) {
+      alert('Board with this name already exists')
+      return
+    }
     dispatch(addBoard(boardName))
 
     toggleModal()

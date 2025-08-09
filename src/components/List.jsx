@@ -7,7 +7,7 @@ import {
 } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
 import { attachClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
-
+import Edit from '../assets/svg/Edit.svg'
 import { deleteTask } from '../Redux/slices/board/Board'
 
 export default function List ({ task, listId, boardId }) {
@@ -71,14 +71,19 @@ export default function List ({ task, listId, boardId }) {
         isDragging ? 'dragging' : ''
       } bg-gray-700 p-2 rounded flex justify-between items-center text-white border border-gray-600 cursor-move`}
     >
-      <span>{task.title}</span>
-      <button
-        onClick={handleDeleteTask}
-        className='text-red-400 hover:text-red-600'
-        aria-label={`Delete task ${task.title}`}
-      >
-        ✕
-      </button>
+      <span className='flex gap-2 items-center'>{task.title}</span>
+      <span className='flex gap-2 items-center'>
+        <button onClick={() => console.log('object')}>
+          <img src={Edit} className='h-4 w-3' alt='' />
+        </button>
+        <button
+          onClick={handleDeleteTask}
+          className='text-red-400 hover:text-red-600'
+          aria-label={`Delete task ${task.title}`}
+        >
+          ✕
+        </button>
+      </span>
     </li>
   )
 }

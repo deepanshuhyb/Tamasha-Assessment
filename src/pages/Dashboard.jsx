@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import Board from '../components/Board'
-import Modal from '../components/Modal'
+import Modal from '../components/Modals/Modal'
 import { useDispatch, useSelector } from 'react-redux'
 import { deleteBoard, setActiveBoard } from '../Redux/slices/board/Board'
 
@@ -14,6 +14,21 @@ export default function Dashboard () {
 
   const deleteBoardWithID = id => {
     dispatch(deleteBoard(id))
+  }
+  const isMob = window.innerWidth < 1024
+  if (isMob) {
+    return (
+      <div className='w-full h-full min-h-screen bg-gradient-to-b flex flex-col items-center justify-center from-blue-200 to-yellow-100'>
+        <div>
+          <h1 className='text-2xl font-bold text-center'>
+            Mobile view not supported
+          </h1>
+          <p className='text-center text-gray-600'>
+            Please use a desktop browser to access the dashboard.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
