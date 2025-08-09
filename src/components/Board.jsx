@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { createList, moveTask } from '../Redux/slices/board/Board'
 import TaskList from './TaskList'
-import { DragDropContext } from 'react-beautiful-dnd'
 
 export default function Board () {
   const dispatch = useDispatch()
@@ -12,6 +11,7 @@ export default function Board () {
 
   useEffect(() => {
     setNewListTitle('')
+    console.log('Active Board:', activeBoard)
   }, [activeBoard])
 
   const handleAddList = () => {
@@ -42,10 +42,6 @@ export default function Board () {
   //   )
   // }
 
-  if (!activeBoard) {
-    return <p className='text-gray-300'>No board selected</p>
-  }
-
   return (
     <div className='flex flex-col gap-4 w-full min-h-full bg-gray-900 rounded-lg shadow-lg p-4 text-white'>
       <div className='flex justify-between items-center mb-4'>
@@ -75,11 +71,14 @@ export default function Board () {
 
       <div className='grid grid-cols-3 gap-4'>
         {activeBoard.list?.map(list => (
-          <TaskList key={list.id} list={list} boardId={activeBoard.id} />
+          <TaskList
+            key={list.id}
+            size={list?.size}
+            list={list}
+            boardId={activeBoard.id}
+          />
         ))}
       </div>
-      {/* <DragDropContext onDragEnd={onDragEnd}>
-      </DragDropContext> */}
     </div>
   )
 }

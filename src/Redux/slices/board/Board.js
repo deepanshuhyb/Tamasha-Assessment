@@ -1,10 +1,13 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const defaultLists = [
-  { id: 1, title: "To Do", items: [] },
-  { id: 2, title: "In Progress", items: [] },
-  { id: 3, title: "Done", items: [] },
+  { id: generateRandomId(), title: "To Do", items: [] },
+  { id: generateRandomId(), title: "In Progress", items: [] },
+  { id: generateRandomId(), title: "Done", items: [] },
 ];
+function generateRandomId() {
+  return Math.floor(Math.random() * 10000);
+}
 
 const savedBoards = JSON.parse(localStorage.getItem("boards")) || [];
 
@@ -17,9 +20,7 @@ export const BoardSlice = createSlice({
   reducers: {
     addBoard: (state, action) => {
       const newBoard = {
-        id: state.boards.length
-          ? state.boards[state.boards.length - 1].id + 1
-          : 1,
+        id: generateRandomId(),
         title: action.payload,
         list: defaultLists.map((l) => ({ ...l, items: [] })),
       };
@@ -41,7 +42,7 @@ export const BoardSlice = createSlice({
       const board = state.boards.find((b) => b.id === boardId);
       if (board) {
         const newList = {
-          id: board.list.length ? board.list[board.list.length - 1].id + 1 : 1,
+          id: generateRandomId(),
           title: listTitle,
           items: [],
         };
@@ -86,10 +87,9 @@ export const BoardSlice = createSlice({
       if (board) {
         const list = board.list.find((l) => l.id === listId);
         if (list) {
+          const randomId = Math.floor(Math.random() * 10000);
           const newTask = {
-            id: list.items.length
-              ? list.items[list.items.length - 1].id + 1
-              : 1,
+            id: generateRandomId(),
             title,
             description: description || "",
           };
@@ -122,17 +122,38 @@ export const BoardSlice = createSlice({
       }
     },
     moveTask: (state, action) => {
-      const { sourceBoardId, sourceListId, destListId, taskId } =
-        action.payload;
-      const board = state.boards.find((b) => b.id === sourceBoardId);
+      const { boardId, listId, sourceId, targetId } = action.payload;
+      console.log(action.payload);
+      const board = state.boards.find((b) => b.id === boardId);
       if (board) {
-        const sourceList = board.list.find((l) => l.id === sourceListId);
-        const destList = board.list.find((l) => l.id === destListId);
-        if (sourceList && destList) {
-          const taskIndex = sourceList.items.findIndex((t) => t.id === taskId);
-          if (taskIndex > -1) {
-            const [task] = sourceList.items.splice(taskIndex, 1);
-            destList.items.push(task);
+        const oldList = board.list.find((l) => l.id === sourceId);
+        if (oldList) {
+          const taskIndex = oldList.items.findIndex((t) => t.id === listId);
+          if (taskIndex !== -1) {
+            const [task] = oldList.items.splice(taskIndex, 1);
+            const newList = board.list.find((l) => l.id === targetId);
+            if (newList) {
+              newList.items.push(task);
+            }
+          }
+        }
+        if (state.activeBoard?.id === boardId) {
+          const activeOldList = state.activeBoard.list.find(
+            (l) => l.id === sourceId
+          );
+          if (activeOldList) {
+            const taskIndex = activeOldList.items.findIndex(
+              (t) => t.id === listId
+            );
+            if (taskIndex !== -1) {
+              const [task] = activeOldList.items.splice(taskIndex, 1);
+              const activeNewList = state.activeBoard.list.find(
+                (l) => l.id === targetId
+              );
+              if (activeNewList) {
+                activeNewList.items.push(task);
+              }
+            }
           }
         }
         localStorage.setItem("boards", JSON.stringify(state.boards));

@@ -1,10 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useDispatch } from 'react-redux'
-import { createTask, deleteList, deleteTask } from '../Redux/slices/board/Board'
+import { createTask, deleteList, moveTask } from '../Redux/slices/board/Board'
+import List from './List'
+import invariant from 'tiny-invariant'
+import { dropTargetForElements } from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
 
 export default function TaskList ({ list, boardId }) {
   const dispatch = useDispatch()
   const [newTaskTitle, setNewTaskTitle] = useState('')
+  const listRef = useRef(null)
+
+  useEffect(() => {
+    const el = listRef.current
+    invariant(el)
+    if (!el) return
+
+    return dropTargetForElements({
+      element: el,
+      getData: () => ({ type: 'list', listId: list.id, boardId }),
+      getIsSticky: () => true,
+      onDrop: args => {
+        const sourceData = args.source.data
+        if (sourceData.type === 'card') {
+          console.log('Dropped card on empty list', sourceData, list.id, el.id)
+          dispatch(
+            moveTask({
+              boardId,
+              listId: sourceData.listItem.id,
+              sourceId: sourceData.cardId,
+              targetId: list.id,
+              edge: args.edge
+            })
+          )
+        }
+      }
+    })
+  }, [list.id, boardId, dispatch])
 
   const handleAddTask = () => {
     if (!newTaskTitle.trim()) {
@@ -14,8 +45,9 @@ export default function TaskList ({ list, boardId }) {
     dispatch(createTask({ boardId, listId: list.id, title: newTaskTitle }))
     setNewTaskTitle('')
   }
-  const handleDeleteList = listId => {
-    dispatch(deleteList({ boardId, listId }))
+
+  const handleDeleteList = () => {
+    dispatch(deleteList({ boardId, listId: list.id }))
   }
 
   return (
@@ -24,34 +56,15 @@ export default function TaskList ({ list, boardId }) {
         <h3 className='font-semibold mb-2 text-white'>{list.title}</h3>
         <button
           className='text-red-400 hover:text-red-600'
-          onClick={() => handleDeleteList(list.id)}
+          onClick={handleDeleteList}
         >
           ✕
         </button>
       </div>
 
-      <ul className='space-y-2 mb-3 min-h-[50px]'>
+      <ul ref={listRef} className='space-y-2 mb-3 min-h-[50px]'>
         {list.items.map(task => (
-          <li
-            key={task.id}
-            className='bg-gray-700 p-2 rounded flex justify-between items-center text-white border border-gray-600'
-          >
-            <span>{task.title}</span>
-            <button
-              onClick={() =>
-                dispatch(
-                  deleteTask({
-                    boardId,
-                    listId: list.id,
-                    taskId: task.id
-                  })
-                )
-              }
-              className='text-red-400 hover:text-red-600'
-            >
-              ✕
-            </button>
-          </li>
+          <List key={task.id} task={task} listId={list.id} boardId={boardId} />
         ))}
       </ul>
 

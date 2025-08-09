@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import Board from '../components/Board'
 import Modal from '../components/Modal'
 import { useDispatch, useSelector } from 'react-redux'

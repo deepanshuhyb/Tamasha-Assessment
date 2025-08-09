@@ -1,38 +1,84 @@
-import { useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { createList } from '../Redux/slices/board/Board'
+import { useDispatch } from 'react-redux'
+import { useRef, useEffect, useState } from 'react'
+import invariant from 'tiny-invariant'
+import {
+  draggable,
+  dropTargetForElements
+} from '@atlaskit/pragmatic-drag-and-drop/element/adapter'
+import { combine } from '@atlaskit/pragmatic-drag-and-drop/combine'
+import { attachClosestEdge } from '@atlaskit/pragmatic-drag-and-drop-hitbox/closest-edge'
 
-export default function List () {
-  const [listTitle, setListTitle] = useState('')
+import { deleteTask } from '../Redux/slices/board/Board'
+
+export default function List ({ task, listId, boardId }) {
+  const taskRef = useRef(null)
   const dispatch = useDispatch()
-  const activeBoard = useSelector(state => state.board.activeBoard)
+  const [isDragging, setIsDragging] = useState(false)
 
-  function handleAddList () {
-    if (!listTitle.trim()) {
-      alert('Please enter a list title')
-      return
-    }
-    if (activeBoard) {
-      dispatch(createList({ boardId: activeBoard.id, listTitle }))
-      setListTitle('')
-    }
+  useEffect(() => {
+    const taskEl = taskRef.current
+    invariant(taskEl)
+
+    return combine(
+      draggable({
+        element: taskEl,
+        getInitialData: () => ({
+          type: 'card',
+          cardId: listId,
+          listItem: task
+        }),
+        onDragStart: () => setIsDragging(true),
+        onDrop: () => setIsDragging(false)
+      }),
+      dropTargetForElements({
+        element: taskEl,
+        getData: ({ input, element }) => {
+          const data = { type: 'card', cardId: task.id }
+          return attachClosestEdge(data, {
+            input,
+            element,
+            allowedEdges: ['top', 'bottom']
+          })
+        },
+        getIsSticky: () => true,
+        onDragEnter: args => {
+          if (args.source.data.cardId !== task.id) {
+            console.log('Drag entered on', task.title, listId, args)
+            dispatch(
+              moveTask({
+                boardId,
+                //   targetListId: list.id,
+                listId: sourceData.listItem.id,
+                sourceId: sourceData.cardId,
+                targetId: listId,
+                edge: args.edge
+              })
+            )
+          }
+        }
+      })
+    )
+  }, [task.id, dispatch, boardId, listId, task.title])
+
+  const handleDeleteTask = () => {
+    dispatch(deleteTask({ boardId, listId, taskId: task.id }))
   }
 
   return (
-    <div className='flex flex-col gap-4'>
-      <input
-        type='text'
-        value={listTitle}
-        onChange={e => setListTitle(e.target.value)}
-        className='p-2 border border-gray-300 rounded-md mb-2'
-        placeholder='New List Title'
-      />
+    <li
+      ref={taskRef}
+      className={`card ${
+        isDragging ? 'dragging' : ''
+      } bg-gray-700 p-2 rounded flex justify-between items-center text-white border border-gray-600 cursor-move`}
+    >
+      <span>{task.title}</span>
       <button
-        className='bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600'
-        onClick={handleAddList}
+        onClick={handleDeleteTask}
+        className='text-red-400 hover:text-red-600'
+        aria-label={`Delete task ${task.title}`}
       >
-        Add List
+        ✕
       </button>
-    </div>
+    </li>
   )
 }
