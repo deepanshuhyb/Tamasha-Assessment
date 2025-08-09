@@ -1,0 +1,176 @@
+import { createSlice } from "@reduxjs/toolkit";
+
+const defaultLists = [
+  { id: 1, title: "To Do", items: [] },
+  { id: 2, title: "In Progress", items: [] },
+  { id: 3, title: "Done", items: [] },
+];
+
+const savedBoards = JSON.parse(localStorage.getItem("boards")) || [];
+
+export const BoardSlice = createSlice({
+  name: "board",
+  initialState: {
+    boards: savedBoards,
+    activeBoard: savedBoards[0] || null,
+  },
+  reducers: {
+    addBoard: (state, action) => {
+      const newBoard = {
+        id: state.boards.length
+          ? state.boards[state.boards.length - 1].id + 1
+          : 1,
+        title: action.payload,
+        list: defaultLists.map((l) => ({ ...l, items: [] })),
+      };
+      state.boards.push(newBoard);
+      state.activeBoard = newBoard;
+      localStorage.setItem("boards", JSON.stringify(state.boards));
+    },
+    deleteBoard: (state, action) => {
+      const boardId = action.payload;
+      state.boards = state.boards.filter((b) => b.id !== boardId);
+      state.activeBoard = state.boards[0] || null;
+      localStorage.setItem("boards", JSON.stringify(state.boards));
+    },
+    setActiveBoard: (state, action) => {
+      state.activeBoard = action.payload;
+    },
+    createList: (state, action) => {
+      const { boardId, listTitle } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        const newList = {
+          id: board.list.length ? board.list[board.list.length - 1].id + 1 : 1,
+          title: listTitle,
+          items: [],
+        };
+        board.list.push(newList);
+        if (state.activeBoard?.id === boardId) {
+          state.activeBoard.list.push(newList);
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    renameList: (state, action) => {
+      const { boardId, listId, newTitle } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        const list = board.list.find((l) => l.id === listId);
+        if (list) list.title = newTitle;
+        if (state.activeBoard?.id === boardId) {
+          const activeList = state.activeBoard.list.find(
+            (l) => l.id === listId
+          );
+          if (activeList) activeList.title = newTitle;
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    deleteList: (state, action) => {
+      const { boardId, listId } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        board.list = board.list.filter((l) => l.id !== listId);
+        if (state.activeBoard?.id === boardId) {
+          state.activeBoard.list = state.activeBoard.list.filter(
+            (l) => l.id !== listId
+          );
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    createTask: (state, action) => {
+      const { boardId, listId, title, description } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        const list = board.list.find((l) => l.id === listId);
+        if (list) {
+          const newTask = {
+            id: list.items.length
+              ? list.items[list.items.length - 1].id + 1
+              : 1,
+            title,
+            description: description || "",
+          };
+          list.items.push(newTask);
+          if (state.activeBoard?.id === boardId) {
+            const activeList = state.activeBoard.list.find(
+              (l) => l.id === listId
+            );
+            if (activeList) {
+              activeList.items.push(newTask);
+            }
+          }
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    editTask: (state, action) => {
+      const { boardId, listId, taskId, title, description } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        const list = board.list.find((l) => l.id === listId);
+        if (list) {
+          const task = list.items.find((t) => t.id === taskId);
+          if (task) {
+            task.title = title;
+            task.description = description || "";
+          }
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    moveTask: (state, action) => {
+      const { sourceBoardId, sourceListId, destListId, taskId } =
+        action.payload;
+      const board = state.boards.find((b) => b.id === sourceBoardId);
+      if (board) {
+        const sourceList = board.list.find((l) => l.id === sourceListId);
+        const destList = board.list.find((l) => l.id === destListId);
+        if (sourceList && destList) {
+          const taskIndex = sourceList.items.findIndex((t) => t.id === taskId);
+          if (taskIndex > -1) {
+            const [task] = sourceList.items.splice(taskIndex, 1);
+            destList.items.push(task);
+          }
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+    deleteTask: (state, action) => {
+      const { boardId, listId, taskId } = action.payload;
+      const board = state.boards.find((b) => b.id === boardId);
+      if (board) {
+        const list = board.list.find((l) => l.id === listId);
+        if (list) {
+          list.items = list.items.filter((t) => t.id !== taskId);
+        }
+        if (state.activeBoard?.id === boardId) {
+          const activeList = state.activeBoard.list.find(
+            (l) => l.id === listId
+          );
+          if (activeList) {
+            activeList.items = activeList.items.filter((t) => t.id !== taskId);
+          }
+        }
+        localStorage.setItem("boards", JSON.stringify(state.boards));
+      }
+    },
+  },
+});
+
+export default BoardSlice.reducer;
+
+export const {
+  addBoard,
+  deleteBoard,
+  setActiveBoard,
+  createList,
+  renameList,
+  deleteList,
+  createTask,
+  editTask,
+  deleteTask,
+  moveTask,
+} = BoardSlice.actions;

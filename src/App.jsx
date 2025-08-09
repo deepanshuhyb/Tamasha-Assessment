@@ -1,10 +1,14 @@
+import { Provider } from 'react-redux'
 import './App.css'
 import Dashboard from './pages/Dashboard'
+import { store } from './Redux/store'
 
 function App () {
   return (
     <>
-      <Dashboard />
+      <Provider store={store}>
+        <Dashboard />
+      </Provider>
     </>
   )
 }

@@ -1,73 +1,85 @@
-import { useEffect, useState } from 'react'
-export default function Board ({ activeBoard, setBoards }) {
-  const [lists, setLists] = useState()
-  const [activeList, setActiveList] = useState(null)
+import { useState, useEffect } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { createList, moveTask } from '../Redux/slices/board/Board'
+import TaskList from './TaskList'
+import { DragDropContext } from 'react-beautiful-dnd'
+
+export default function Board () {
+  const dispatch = useDispatch()
+  const activeBoard = useSelector(state => state.board.activeBoard)
+  const [newListTitle, setNewListTitle] = useState('')
+  const [inputClicked, setInputClicked] = useState(false)
+
   useEffect(() => {
-    if (activeBoard) {
-      setLists(activeBoard.list)
-      setActiveList(activeBoard.list[0] || null)
-    }
+    setNewListTitle('')
   }, [activeBoard])
-  function handleAddList () {
-    setLists([
-      ...lists,
-      {
-        id: lists.length + 1,
-        title: `New List ${lists?.length + 1}`,
-        items: []
-      }
-    ])
-    setBoards(prevBoards =>
-      prevBoards.map(board =>
-        board.id === activeBoard.id
-          ? {
-              ...board,
-              list: [
-                ...board.list,
-                {
-                  id: lists.length + 1,
-                  title: `New List ${lists?.length + 1}`,
-                  items: []
-                }
-              ]
-            }
-          : board
-      )
-    )
+
+  const handleAddList = () => {
+    if (!newListTitle.trim()) {
+      alert('Please enter a list title')
+      return
+    }
+    dispatch(createList({ boardId: activeBoard.id, listTitle: newListTitle }))
+    setNewListTitle('')
+  }
+
+  // const onDragEnd = result => {
+  //   if (!result.destination) return
+  //   const { source, destination, draggableId } = result
+  //   if (
+  //     source.droppableId === destination.droppableId &&
+  //     source.index === destination.index
+  //   )
+  //     return
+
+  //   dispatch(
+  //     moveTask({
+  //       sourceBoardId: activeBoard.id,
+  //       sourceListId: parseInt(source.droppableId),
+  //       destListId: parseInt(destination.droppableId),
+  //       taskId: parseInt(draggableId)
+  //     })
+  //   )
+  // }
+
+  if (!activeBoard) {
+    return <p className='text-gray-300'>No board selected</p>
   }
 
   return (
-    <div className='flex flex-col gap-4 w-full min-h-full text-black bg-gradient-to-b from-white via-purple-100 to-yellow-100 rounded-lg shadow-lg p-2'>
-      <div className='w-full flex justify-between items-center mb-4 p-2 bg-white rounded-lg shadow-md'>
-        <h2 className='text-2xl font-bold'>Board Content</h2>
-        <button
-          className='bg-blue-500 text-white w-[40%] p-2 cursor-pointer rounded-md hover:bg-blue-600 transition-colors'
-          onClick={handleAddList}
+    <div className='flex flex-col gap-4 w-full min-h-full bg-gray-900 rounded-lg shadow-lg p-4 text-white'>
+      <div className='flex justify-between items-center mb-4'>
+        <h2 className='text-2xl font-bold'>{activeBoard.title}</h2>
+        <div
+          className={`bg-gray-800 flex gap-4 ${
+            inputClicked ? 'w-[50%]' : ''
+          } items-center justify-center rounded-lg p-4 border border-gray-600 transition-all duration-300`}
         >
-          Add List
-        </button>
+          <input
+            type='text'
+            value={newListTitle}
+            onChange={e => setNewListTitle(e.target.value)}
+            onFocus={() => setInputClicked(true)}
+            onBlur={() => setInputClicked(false)}
+            placeholder='New list title'
+            className='border border-gray-600 p-2 w-full rounded-md bg-gray-700 text-white placeholder-gray-400'
+          />
+          <button
+            className='bg-blue-600 text-white w-full p-2 rounded hover:bg-blue-700'
+            onClick={handleAddList}
+          >
+            Add List
+          </button>
+        </div>
       </div>
 
-      <div className='grid grid-cols-3 gap-4 w-full'>
-        {lists?.map(list => (
-          <div
-            key={list?.id}
-            className={`p-4 hover:scale-101 transition-all rounded-lg cursor-pointer w-full gap-2 flex flex-col ${
-              activeList?.id === list?.id
-                ? 'bg-blue-500 text-white'
-                : 'bg-gray-200'
-            }`}
-            onClick={() => setActiveList(list)}
-          >
-            <h3 className='font-semibold'>{list?.title}</h3>
-            <ul className=''>
-              {list?.items?.map((item, index) => (
-                <li key={index}>{item}</li>
-              ))}
-            </ul>
-          </div>
+      <div className='grid grid-cols-3 gap-4'>
+        {activeBoard.list?.map(list => (
+          <TaskList key={list.id} list={list} boardId={activeBoard.id} />
         ))}
       </div>
+      {/* <DragDropContext onDragEnd={onDragEnd}>
+      </DragDropContext> */}
     </div>
   )
 }

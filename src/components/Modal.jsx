@@ -1,37 +1,25 @@
 import { useState } from 'react'
-export default function Modal ({ toggleModal, setBoards }) {
+import { useDispatch, useSelector } from 'react-redux'
+import { addBoard } from '../Redux/slices/board/Board'
+export default function Modal ({ toggleModal }) {
   const [boardName, setBoardName] = useState('')
   const defaultList = [
     { id: 1, title: 'To Do', items: [] },
     { id: 2, title: 'In Progress', items: [] },
     { id: 3, title: 'Done', items: [] }
   ]
+  const dispatch = useDispatch()
+  const Boards = useSelector(state => state.board.boards)
 
   function handleAddBoard () {
     if (!boardName) {
       alert('Please enter a board name')
       return
     }
+    // add logic to check if board already exists
+    dispatch(addBoard(boardName))
+
     toggleModal()
-    setBoards(prevBoards => [
-      ...prevBoards,
-      {
-        id: prevBoards.length + 1,
-        title: `${boardName || `Board ${prevBoards.length + 1}`}`,
-        list: defaultList
-      }
-    ])
-    window.localStorage.setItem(
-      'boards',
-      JSON.stringify([
-        ...JSON.parse(window.localStorage.getItem('boards') || '[]'),
-        {
-          id: boardName,
-          title: `${boardName || `Board ${prevBoards.length + 1}`}`,
-          list: defaultList
-        }
-      ])
-    )
   }
   return (
     <div className='fixed inset-0 flex items-center justify-center bg-opacity-90 bg-black/30 backdrop-blur-xs z-50'>

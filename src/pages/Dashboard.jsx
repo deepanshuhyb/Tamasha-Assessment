@@ -1,33 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import Board from '../components/Board'
 import Modal from '../components/Modal'
+import { useDispatch, useSelector } from 'react-redux'
+import { deleteBoard, setActiveBoard } from '../Redux/slices/board/Board'
 
 export default function Dashboard () {
   const [modalOpen, setModalOpen] = useState(false)
   const toggleModal = () => setModalOpen(!modalOpen)
-  const [boards, setBoards] = useState([])
-  const [activeBoard, setActiveBoard] = useState('')
-  useEffect(() => {
-    const storedBoards = window.localStorage.getItem('boards')
-    if (storedBoards) {
-      setBoards(JSON.parse(storedBoards))
-    }
-  }, [])
 
-  const deleteBoard = id => {
-    setBoards(boards.filter(board => board.id !== id))
-    if (activeBoard.id === id) {
-      setActiveBoard(boards[0] || '')
-    }
-    window.localStorage.setItem(
-      'boards',
-      JSON.stringify(boards.filter(board => board.id !== id))
-    )
+  const boards = useSelector(state => state.board.boards)
+  const activeBoard = useSelector(state => state.board.activeBoard)
+  const dispatch = useDispatch()
+
+  const deleteBoardWithID = id => {
+    dispatch(deleteBoard(id))
   }
 
   return (
     <div className='bg-black h-screen flex gap-4 p-4 text-white'>
-      {modalOpen && <Modal toggleModal={toggleModal} setBoards={setBoards} />}
+      {modalOpen && <Modal toggleModal={toggleModal} />}
+
       <div className='w-[25%] flex flex-col'>
         <h1 className='text-2xl font-bold mb-4'>Boards</h1>
 
@@ -39,19 +31,19 @@ export default function Dashboard () {
         </button>
 
         <div className='flex-1 overflow-y-auto bg-gradient-to-b from-blue-300 to-white rounded-lg flex flex-col gap-4 items-center p-4 hide-scrollbar'>
-          {boards.map(board => (
+          {boards?.map(board => (
             <span
-              key={board}
+              key={board.id}
               className={`p-4 relative cursor-pointer w-[80%] rounded-md ${
-                activeBoard === board ? 'bg-blue-500' : 'bg-gray-700'
+                activeBoard?.id === board.id ? 'bg-blue-500' : 'bg-gray-700'
               }`}
-              onClick={() => setActiveBoard(board)}
+              onClick={() => dispatch(setActiveBoard(board))}
             >
               <button
                 className='absolute top-0 right-0.5 cursor-pointer'
                 onClick={e => {
                   e.stopPropagation()
-                  deleteBoard(board.id)
+                  deleteBoardWithID(board.id)
                 }}
               >
                 &#10006;
@@ -63,7 +55,11 @@ export default function Dashboard () {
       </div>
 
       <div className='w-[75%] overflow-auto'>
-        <Board activeBoard={activeBoard} setBoards={setBoards} />
+        {activeBoard ? (
+          <Board />
+        ) : (
+          <p className='text-center text-gray-400'>No board selected</p>
+        )}
       </div>
     </div>
   )
