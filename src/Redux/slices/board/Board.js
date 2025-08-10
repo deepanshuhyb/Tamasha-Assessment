@@ -1,12 +1,12 @@
 import { createSlice } from "@reduxjs/toolkit";
 
 const defaultLists = [
-  { id: generateRandomId(), title: "To Do", items: [] },
-  { id: generateRandomId(), title: "In Progress", items: [] },
-  { id: generateRandomId(), title: "Done", items: [] },
+  { id: generateUniqueID(), title: "To Do", items: [] },
+  { id: generateUniqueID(), title: "In Progress", items: [] },
+  { id: generateUniqueID(), title: "Done", items: [] },
 ];
-function generateRandomId() {
-  return Math.floor(Math.random() * 10000);
+function generateUniqueID() {
+  return Number(Math.floor(Math.random() * 10000) + Date.now());
 }
 
 const savedBoards = JSON.parse(localStorage.getItem("boards")) || [];
@@ -20,7 +20,7 @@ export const BoardSlice = createSlice({
   reducers: {
     addBoard: (state, action) => {
       const newBoard = {
-        id: generateRandomId(),
+        id: generateUniqueID(),
         title: action.payload,
         list: defaultLists.map((l) => ({ ...l, items: [] })),
       };
@@ -53,7 +53,7 @@ export const BoardSlice = createSlice({
       const board = state.boards.find((b) => b.id === boardId);
       if (board) {
         const newList = {
-          id: generateRandomId(),
+          id: generateUniqueID(),
           title: listTitle,
           items: [],
         };
@@ -104,7 +104,7 @@ export const BoardSlice = createSlice({
         if (list) {
           const randomId = Math.floor(Math.random() * 10000);
           const newTask = {
-            id: generateRandomId(),
+            id: generateUniqueID(),
             title,
             description: description || "",
           };
